@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import { Icon } from "@iconify/react";
 
-export default function NavBar() {
-  const [selectedTab, setSelectedTab] = useState("puzzle");
-
+export default function NavBar({ onNavigate, currentPage = "puzzle" }) {
   const navItems = [
     {
       id: "puzzle",
@@ -31,17 +29,17 @@ export default function NavBar() {
         {navItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => setSelectedTab(item.id)}
+            onClick={() => onNavigate && onNavigate(item.id)}
             className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
-              selectedTab === item.id
+              currentPage === item.id
                 ? "text-black"
                 : "text-black/70"
             }`}
           >
             <Icon 
-              icon={selectedTab === item.id ? item.iconFilled : item.iconOutline}
+              icon={currentPage === item.id ? item.iconFilled : item.iconOutline}
               className={`text-4xl mb-1 ${
-                selectedTab === item.id ? "text-black" : "text-black/70"
+                currentPage === item.id ? "text-black" : "text-black/70"
               }`}
             />
             <span className="font-cormorant font-bold" style={{ fontSize: '18px' }}>
