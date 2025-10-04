@@ -30,7 +30,7 @@ export default function Layout({ children, onNavigate, currentPage }) {
             {children}
           </main>
 
-          <div className="h-20"></div>
+          <div className="h-24"></div>
           <NavBar onNavigate={onNavigate} currentPage={currentPage} />
         </div>
       </div>
