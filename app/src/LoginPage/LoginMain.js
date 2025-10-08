@@ -15,11 +15,14 @@ export default function LoginPage() {
                     <DecorativeTitle title="Login" />
                     <p className="text-[16px] text-gray-600">Welcome To UM6P Treasure Hunt</p>
                 </div>
-                <form className="flex flex-col items-center space-y-4 w-full mt-10  text-2xl  text-background">
-                    <input type="text" placeholder="Email" className=" bg-primary border-none outline-none  p-3 rounded-md w-[90%] placeholder:text-background" />
-                    <input type="password" placeholder="Password" className=" bg-primary border-none outline-none  p-3 rounded-md w-[90%] placeholder:text-background" />
-                    <button type="submit" className="bg-secondary text-[24px] p-3 rounded-[27px] w-[90%] cursor-pointer">Login</button>
-                </form>
+                <div className="flex flex-col items-center w-full mt-10">
+                    <button 
+                        type="button" 
+                        className="bg-secondary text-background text-[24px] font-bold p-3 rounded-[27px] w-[90%] cursor-pointer"
+                    >
+                        Login with Intra
+                    </button>
+                </div>
             </div>
         </div>
     );
