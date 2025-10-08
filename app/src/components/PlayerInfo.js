@@ -6,7 +6,7 @@ export default function PlayerInfo({
   teamName = "The Vikings", 
   ranking = 3,
   level = 3,
-  currentXP = 25,
+  currentXP = 150,
   maxXP = 225
 }) {
   return (

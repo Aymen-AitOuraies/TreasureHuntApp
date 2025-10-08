@@ -5,7 +5,7 @@ import LoginPage from './LoginPage/LoginMain';
 import PuzzlesMain from './PuzzlesPage/PuzzlesMain';
 import LeaderboardMain from './LeaderboardPage/LeaderboardMain';
 import StoreMain from './StorePage/StoreMain';
-
+import WaitingPage from './WaitingPage/WaitingPage';
 function App() {
   const [currentPage, setCurrentPage] = useState('puzzle');
 
@@ -24,6 +24,7 @@ function App() {
 
   return (
     <div className="block lg:hidden">
+      {/* <WaitingPage /> */}
       {renderCurrentPage()}
     </div>
   );

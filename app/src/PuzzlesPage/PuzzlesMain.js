@@ -1,74 +1,62 @@
-import React from "react";
+import React, { useState } from "react";
 import Layout from "../components/Layout";
-export default function PuzzlesMain({ puzzleNumber = 1, onNavigate }) {
+import DecorativeTitle from "../components/DecorativeTitle";
+import PuzzleCard from "./components/PuzzleCard";
+
+export default function PuzzlesMain({ onNavigate }) {
+  const [puzzles, setPuzzles] = useState([
+    {
+      puzzleNumber: 1,
+      puzzleName: "The Color Sequence",
+      description: "Red is first, blue is last, Green hides where shadows are cast. Put them in order.",
+      isSolved: false
+    },
+    {
+      puzzleNumber: 2,
+      puzzleName: "Ancient Riddle",
+      description: "I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?",
+      isSolved: true
+    },
+    {
+      puzzleNumber: 3,
+      puzzleName: "The Missing Number",
+      description: "Find the missing number in the sequence: 2, 4, 8, 16, ?, 64",
+      isSolved: false
+    },
+    {
+      puzzleNumber: 4,
+      puzzleName: "Word Puzzle",
+      description: "What has keys but no locks, space but no room, and you can enter but can't go inside?",
+      isSolved: false
+    }
+  ]);
+
+  const handleSubmitAnswer = (puzzleNumber, answer) => {
+    console.log(`Puzzle ${puzzleNumber} answer:`, answer);
+    // Here you can add logic to check the answer and update the puzzle state
+    // For example:
+    // if (answer.toLowerCase() === correctAnswer) {
+    //   setPuzzles(puzzles.map(p => 
+    //     p.puzzleNumber === puzzleNumber ? { ...p, isSolved: true } : p
+    //   ));
+    // }
+  };
+
   return (
     <Layout onNavigate={onNavigate} currentPage="puzzle">
-      <div className="flex justify-between items-center mb-4 mt-6 ">
-        <h2 className="text-secondary text-[28px] font-cormorant font-bold">
-          Puzzle {puzzleNumber}
-        </h2>
-
-        <div className="relative">
-          <div className="absolute -top-3 -left-3 flex items-center bg-background border-[1px] border-secondary w-[50px] h-[21px] rounded z-10 text-center justify-center">
-            <span className="text-secondary font-inknut font-regular mr-1 text-[14px]">
-              150
-            </span>
-            <img
-              src="/assets/GlobalAssets/CoinsIcon.png"
-              alt="Coins"
-              className="w-[16px] h-[16px]"
+      <div className="-mt-14">
+        <DecorativeTitle title="Puzzles" />
+        <div className="mt-8 space-y-3">
+          {puzzles.map((puzzle) => (
+            <PuzzleCard
+              key={puzzle.puzzleNumber}
+              puzzleNumber={puzzle.puzzleNumber}
+              puzzleName={puzzle.puzzleName}
+              description={puzzle.description}
+              isSolved={puzzle.isSolved}
+              onSubmit={handleSubmitAnswer}
             />
-          </div>
-
-          <button className="flex items-center justify-center bg-secondary text-background w-[96px] h-[38px] rounded-full font-cormorant font-bold">
-            <span className="mr-1 text-[24px] ">Hint</span>
-            <img
-              src="/assets/PuzzlesAssets/HintBulb.png"
-              alt="Hint"
-              className="w-[30px] h-[30px"
-            />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col items-center space-y-2 mt-8">
-        <div className="w-full max-w-sm px-8">
-          <img
-            src={`/assets/GlobalAssets/BackgroundLayer.png`}
-            alt={`Puzzle ${puzzleNumber}`}
-            className="w-full h-auto rounded-lg shadow-md"
-            onError={(e) => {
-              e.target.style.display = "none";
-            }}
-          />
-        </div>
-
-        <div className="px-8 mb-4">
-          <p className="text-secondary font-cormorant text-[20px] font-semibold ">
-            Red is first, blue is last, Green hides where shadows are cast. Put
-            them in order.{" "}
-          </p>
-        </div>
-
-        <div className="flex flex-col items-center w-full">
-          <label className="text-secondary font-cormorant text-[20px] font-bold self-start ml-2 mb-1">
-            Answer
-          </label>
-
-          <input
-            type="text"
-            placeholder="Enter your answer"
-            className="bg-primary border-none outline-none p-3 rounded-md w-[100%] placeholder:text-background text-background font-cormorant text-xl"
-          />
-
-          <div className="h-4"></div>
-
-          <button
-            type="submit"
-            className="bg-secondary text-background text-[24px] font-cormorant p-3 rounded-[27px] w-[100%] cursor-pointer"
-          >
-            Submit Answer
-          </button>
+          ))}
         </div>
       </div>
     </Layout>

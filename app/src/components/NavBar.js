@@ -14,13 +14,14 @@ export default function NavBar({ onNavigate, currentPage = "puzzle" }) {
       name: "Leaderboard",
       iconOutline: "mingcute:trophy-line",
       iconFilled: "mingcute:trophy-fill"
-    },
-    {
-      id: "store",
-      name: "Store", 
-      iconOutline: "mingcute:shopping-bag-2-line",
-      iconFilled: "mingcute:shopping-bag-2-fill"
     }
+    // Store is hidden for now
+    // {
+    //   id: "store",
+    //   name: "Store", 
+    //   iconOutline: "mingcute:shopping-bag-2-line",
+    //   iconFilled: "mingcute:shopping-bag-2-fill"
+    // }
   ];
 
   return (
