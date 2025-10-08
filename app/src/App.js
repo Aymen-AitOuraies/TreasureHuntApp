@@ -25,8 +25,8 @@ function App() {
   return (
     <div className="block lg:hidden">
       {/* <WaitingPage /> */}
-      <LoginPage />
-      {/* {renderCurrentPage()} */}
+      {/* <LoginPage /> */}
+      {renderCurrentPage()}
     </div>
   );
 }
