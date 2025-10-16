@@ -188,9 +188,68 @@ function App() {
   };
 
   return (
-    <div className="block lg:hidden" key={`app-${gameState}-${isLoggedIn}`}>
-      {renderCurrentPage()}
-    </div>
+    <>
+      {/* --------- Desktop Warning Message --------- */}
+      <div className="hidden lg:flex min-h-screen items-center justify-center bg-background px-6"
+        style={{
+          backgroundImage: "url('/assets/GlobalAssets/PaperBackground.jpg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
+        <div className="text-center max-w-2xl">
+          {/* --------- Pirate Icon --------- */}
+          <div className="mb-8">
+            <img
+              src="/assets/GlobalAssets/PirateProfile.jpg"
+              alt="Pirate"
+              className="w-32 h-32 rounded-full mx-auto border-4 border-secondary shadow-lg"
+            />
+          </div>
+          
+          {/* --------- Title --------- */}
+          <h1 className="text-5xl font-bold text-secondary font-cormorant mb-6">
+            🏴‍☠️ Parley! 🏴‍☠️
+          </h1>
+          
+          {/* --------- Message --------- */}
+          <div className="bg-white/80 rounded-lg p-8 shadow-xl">
+            <p className="text-2xl text-gray-800 font-cormorant mb-4">
+              This treasure hunt be optimized for mobile devices!
+            </p>
+            <p className="text-xl text-gray-600 font-cormorant mb-6">
+              Please open this adventure on yer smartphone or tablet to continue.
+            </p>
+            
+            {/* --------- Mobile Icon --------- */}
+            <div className="flex justify-center gap-8 mt-8">
+              <div className="text-center">
+                <svg className="w-16 h-16 mx-auto mb-2 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <p className="text-gray-600 font-cormorant">Use Mobile</p>
+              </div>
+              <div className="text-center">
+                <svg className="w-16 h-16 mx-auto mb-2 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <p className="text-gray-600 font-cormorant">Or Tablet</p>
+              </div>
+            </div>
+          </div>
+          
+          {/* --------- Footer Message --------- */}
+          <p className="text-gray-500 font-cormorant mt-6 text-lg">
+            🏴‍☠️ The best pirate experience awaits on mobile! 🏴‍☠️
+          </p>
+        </div>
+      </div>
+      
+      {/* --------- Mobile Game Content --------- */}
+      <div className="block lg:hidden" key={`app-${gameState}-${isLoggedIn}`}>
+        {renderCurrentPage()}
+      </div>
+    </>
   );
 }
 
