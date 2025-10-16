@@ -15,9 +15,8 @@
   status = 200
 
 # Environment variables (you can also set these in Netlify UI)
-# [build.environment]
-#   REACT_APP_API_URL = "https://your-backend-api.com"
-#   REACT_APP_WS_URL = "wss://your-backend-api.com"
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "REACT_APP_API_URL,REACT_APP_WS_URL"
 
 # Headers for security and performance
 [[headers]]
