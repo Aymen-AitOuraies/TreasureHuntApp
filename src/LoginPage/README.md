@@ -190,8 +190,8 @@ Or defaults to `http://localhost:8080` if not set.
 import { getPlayerFromLocalStorage } from './LoginPage/services/authService';
 
 const player = getPlayerFromLocalStorage();
-console.log(player.fullName); // "John Doe"
-console.log(player.teamName);  // "Pirates"
+console.log(player.fullName); 
+console.log(player.teamName);
 ```
 
 ### Check Auth Status
