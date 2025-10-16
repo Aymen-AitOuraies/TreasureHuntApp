@@ -3,7 +3,7 @@ import SockJS from 'sockjs-client';
 
 // WebSocket configuration
 const WS_BASE_URL = process.env.REACT_APP_WS_URL;
-const WS_ENDPOINT = '/ws';
+const WS_ENDPOINT = 'ws';
 
 /**
  * WebSocket Service for Waiting Page
