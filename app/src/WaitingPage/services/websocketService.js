@@ -62,7 +62,7 @@ class WebSocketService {
    * Subscribe to /app/players for initial player list
    */
   subscribeToInitialPlayers(callback) {
-    if (!this.client || !this.connected) {
+    if (!this.client || !this.connected || !this.client.connected) {
       console.error('❌ WebSocket not connected - cannot subscribe');
       return null;
     }
@@ -91,7 +91,7 @@ class WebSocketService {
    * Subscribe to /topic/players for new player updates
    */
   subscribeToNewPlayers(callback) {
-    if (!this.client || !this.connected) {
+    if (!this.client || !this.connected || !this.client.connected) {
       console.error('❌ WebSocket not connected - cannot subscribe');
       return null;
     }
@@ -124,11 +124,9 @@ class WebSocketService {
     return this.subscribeToNewPlayers(callback);
   }
 
-  /**
-   * Send message to /app/players/create
-   */
+
   sendToPlayers(message) {
-    if (!this.client || !this.connected) {
+    if (!this.client || !this.connected || !this.client.connected) {
       console.error('❌ WebSocket not connected - cannot send message');
       return false;
     }
@@ -142,11 +140,9 @@ class WebSocketService {
     return true;
   }
 
-  /**
-   * Request all players from /app/players
-   */
+
   requestAllPlayers() {
-    if (!this.client || !this.connected) {
+    if (!this.client || !this.connected || !this.client.connected) {
       console.error('❌ WebSocket not connected - cannot request players');
       return false;
     }
@@ -160,9 +156,6 @@ class WebSocketService {
     return true;
   }
 
-  /**
-   * Disconnect from WebSocket
-   */
   disconnect() {
     if (this.client) {
       Object.values(this.subscriptions).forEach(sub => sub.unsubscribe());
@@ -172,14 +165,10 @@ class WebSocketService {
     }
   }
 
-  /**
-   * Check if WebSocket is connected
-   */
   isConnected() {
     return this.connected;
   }
 }
 
-// Export singleton instance
 const wsService = new WebSocketService();
 export default wsService;

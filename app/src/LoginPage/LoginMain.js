@@ -21,10 +21,8 @@ export default function LoginPage({ onLoginSuccess }) {
             });
 
             if (response.success && response.data) {
-                // Save player data to localStorage
                 savePlayerToLocalStorage(response.data);
                 
-                // Call success callback if provided
                 if (onLoginSuccess) {
                     onLoginSuccess(response.data);
                 }

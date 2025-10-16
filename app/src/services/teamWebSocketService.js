@@ -1,26 +1,26 @@
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
-// WebSocket configuration
 const WS_BASE_URL = process.env.REACT_APP_WS_URL || 'http://localhost:8080';
 const WS_ENDPOINT = '/ws';
 
-/**
- * WebSocket Service for Team Updates
- */
+
 class TeamWebSocketService {
   constructor() {
     this.client = null;
     this.subscriptions = {};
+    this.callbacks = {}; 
     this.connected = false;
+    this.pendingSubscriptions = [];
   }
 
-  /**
-   * Connect to WebSocket server
-   */
+
   connect(onConnected, onError) {
     if (this.client && this.connected) {
       console.log('👥 Team WebSocket already connected');
+      if (onConnected) {
+        setTimeout(() => onConnected(), 0);
+      }
       return;
     }
 
@@ -33,7 +33,18 @@ class TeamWebSocketService {
       onConnect: (frame) => {
         console.log('✅ Team WebSocket Connected');
         this.connected = true;
+        
         if (onConnected) onConnected(frame);
+        
+        if (this.pendingSubscriptions.length > 0) {
+          console.log(`📋 Processing ${this.pendingSubscriptions.length} pending subscription(s)...`);
+          setTimeout(() => {
+            this.pendingSubscriptions.forEach(({ teamId, callback }) => {
+              this.subscribeToTeamUpdates(teamId, callback);
+            });
+            this.pendingSubscriptions = [];
+          }, 100);
+        }
       },
       
       onStompError: (frame) => {
@@ -57,66 +68,80 @@ class TeamWebSocketService {
     this.client.activate();
   }
 
-  /**
-   * Subscribe to /topic/teams/{teamId} for team updates
-   */
+
   subscribeToTeamUpdates(teamId, callback) {
-    if (!this.client || !this.connected) {
-      console.error('❌ WebSocket not connected - cannot subscribe to team updates');
+    if (!this.client || !this.connected || !this.client.connected) {
+      console.warn('⚠️ WebSocket not connected yet - will subscribe when connected');
+      if (!this.pendingSubscriptions) {
+        this.pendingSubscriptions = [];
+      }
+      this.pendingSubscriptions.push({ teamId, callback });
       return null;
     }
 
-    console.log(`📡 Subscribing to /topic/teams/${teamId} for updates...`);
+    if (!this.callbacks[teamId]) {
+      this.callbacks[teamId] = [];
+    }
 
-    const subscription = this.client.subscribe(`/topic/teams/${teamId}`, (message) => {
-      console.log('📨 Team update received');
-      try {
-        const data = JSON.parse(message.body);
-        console.log('✅ Team data updated:', data);
-        callback(data);
-      } catch (error) {
-        console.error('❌ Error parsing team update:', error);
-      }
-    });
+    this.callbacks[teamId].push(callback);
+    console.log(`📡 Added callback for team ${teamId}. Total callbacks: ${this.callbacks[teamId].length}`);
 
-    this.subscriptions[`team_${teamId}`] = subscription;
-    console.log(`✅ Subscribed to /topic/teams/${teamId}`);
-    return subscription;
+    const key = `team_${teamId}`;
+    if (!this.subscriptions[key]) {
+      console.log(`📡 Subscribing to /topic/teams/${teamId} for updates...`);
+
+      const subscription = this.client.subscribe(`/topic/teams/${teamId}`, (message) => {
+        console.log('📨 Team update received for team:', teamId);
+        try {
+          const data = JSON.parse(message.body);
+          console.log('✅ Team data updated:', data);
+          
+          if (this.callbacks[teamId]) {
+            this.callbacks[teamId].forEach(cb => cb(data));
+          }
+        } catch (error) {
+          console.error('❌ Error parsing team update:', error);
+        }
+      });
+
+      this.subscriptions[key] = subscription;
+      console.log(`✅ Subscribed to /topic/teams/${teamId}`);
+    } else {
+      console.log(`ℹ️ Already subscribed to /topic/teams/${teamId}, added new callback`);
+    }
+
+    return key;
   }
 
-  /**
-   * Unsubscribe from a specific team
-   */
+
   unsubscribeFromTeam(teamId) {
     const key = `team_${teamId}`;
     if (this.subscriptions[key]) {
       this.subscriptions[key].unsubscribe();
       delete this.subscriptions[key];
+      delete this.callbacks[teamId]; 
       console.log(`✅ Unsubscribed from /topic/teams/${teamId}`);
     }
   }
 
-  /**
-   * Disconnect from WebSocket
-   */
+
   disconnect() {
     if (this.client) {
       Object.values(this.subscriptions).forEach(sub => sub.unsubscribe());
       this.subscriptions = {};
+      this.callbacks = {}; 
+      this.pendingSubscriptions = [];
       this.client.deactivate();
       this.connected = false;
       console.log('🔌 Team WebSocket disconnected');
     }
   }
 
-  /**
-   * Check if WebSocket is connected
-   */
+
   isConnected() {
     return this.connected;
   }
 }
 
-// Export singleton instance
 const teamWsService = new TeamWebSocketService();
 export default teamWsService;

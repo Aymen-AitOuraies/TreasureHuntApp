@@ -94,9 +94,8 @@ export default function Header({ showTeamIcon = false }) {
     });
   };
 
-  // Subscribe to team updates when team data is loaded
   useEffect(() => {
-    if (team?.id && teamWsService.isConnected()) {
+    if (team?.id) {
       subscribeToTeamUpdates(team.id);
     }
   }, [team?.id]);
@@ -119,7 +118,6 @@ export default function Header({ showTeamIcon = false }) {
     saveTeamToLocalStorage(updatedTeam);
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (showDropdown && !event.target.closest('.profile-dropdown')) {
@@ -157,7 +155,6 @@ export default function Header({ showTeamIcon = false }) {
               />
             </button>
 
-            {/* Dropdown Menu */}
             {console.log('🔍 Checking dropdown conditions:', { showDropdown, showTeamIcon, hasTeam: !!team, teamId: team?.id })}
             {showDropdown && showTeamIcon && team && team.id && (
               <div className="absolute right-0 mt-2 w-48 bg-background rounded-lg shadow-xl border-2 border-secondary/20 overflow-hidden z-50">
@@ -188,7 +185,6 @@ export default function Header({ showTeamIcon = false }) {
         </div>
       </header>
 
-      {/* Team Modal */}
       {showTeamModal && team && (
         <TeamModal
           team={team}

@@ -10,7 +10,6 @@ export default function WaitingPage() {
   const [wsConnected, setWsConnected] = useState(false);
   const [error, setError] = useState(null);
 
-  // Animated dots effect
   useEffect(() => {
     const interval = setInterval(() => {
       setDots(prev => {
@@ -22,17 +21,13 @@ export default function WaitingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // WebSocket connection and subscription
   useEffect(() => {
-    // Connect to WebSocket
     wsService.connect(
-      // onConnected callback
       () => {
         console.log('✅ WebSocket connected successfully');
         setWsConnected(true);
         setError(null);
 
-        // Subscribe to /app/players to get initial player list
         wsService.subscribeToInitialPlayers((data) => {
           console.log('📋 Initial players list received:', data);
           if (Array.isArray(data)) {
@@ -44,14 +39,12 @@ export default function WaitingPage() {
           }
         });
 
-        // Subscribe to /topic/players to receive NEW player updates
         wsService.subscribeToNewPlayers((newPlayer) => {
           console.log('🎯 New player joined:', newPlayer);
           
           if (newPlayer && newPlayer.id && newPlayer.username) {
             console.log('➕ Adding new player to list');
             setPlayers(prevPlayers => {
-              // Check if player already exists
               const exists = prevPlayers.some(p => p.id === newPlayer.id);
               if (exists) {
                 console.log('⚠️ Player already exists, not adding');
@@ -66,7 +59,6 @@ export default function WaitingPage() {
           }
         });
       },
-      // onError callback
       (error) => {
         console.error('WebSocket error:', error);
         setWsConnected(false);
@@ -74,7 +66,6 @@ export default function WaitingPage() {
       }
     );
 
-    // Cleanup on unmount
     return () => {
       console.log('Cleaning up WebSocket connection');
       wsService.disconnect();
@@ -104,7 +95,6 @@ export default function WaitingPage() {
               The game will start soon{dots}
             </h1>
             
-            {/* WebSocket Status */}
             <div className="mb-4 flex items-center gap-2">
               <div className={`w-3 h-3 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
               <span className="text-sm text-secondary font-cormorant">
@@ -112,14 +102,12 @@ export default function WaitingPage() {
               </span>
             </div>
 
-            {/* Error Message */}
             {error && (
               <div className="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg">
                 <p className="font-cormorant text-base">{error}</p>
               </div>
             )}
 
-            {/* Players Count */}
             <p className="text-lg text-secondary font-cormorant mb-6">
               {players.length} {players.length === 1 ? 'player' : 'players'} waiting
             </p>

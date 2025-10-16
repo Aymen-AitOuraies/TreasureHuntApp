@@ -15,7 +15,6 @@ export default function TeamModal({ team, onClose, onTeamUpdated }) {
   }, []);
 
   useEffect(() => {
-    // Update teamName if team prop changes (from WebSocket)
     if (team?.name) {
       setTeamName(team.name);
     }
@@ -39,7 +38,6 @@ export default function TeamModal({ team, onClose, onTeamUpdated }) {
       const updatedTeam = await updateTeamName(team.id, teamName.trim());
       console.log("✅ Team name updated successfully");
       
-      // Call parent callback if provided
       if (onTeamUpdated) {
         onTeamUpdated(updatedTeam);
       }
@@ -48,7 +46,6 @@ export default function TeamModal({ team, onClose, onTeamUpdated }) {
     } catch (err) {
       console.error("❌ Failed to update team name:", err);
       setError(err.message || "Failed to update team name");
-      // Revert to original name
       setTeamName(team.name);
     } finally {
       setLoading(false);
@@ -71,7 +68,6 @@ export default function TeamModal({ team, onClose, onTeamUpdated }) {
           backgroundImage: "url('/assets/GlobalAssets/PaperBackground.jpg')",
         }}
       >
-        {/* Background overlay */}
         <div
           className="absolute inset-0 rounded-lg"
           style={{
@@ -95,7 +91,6 @@ export default function TeamModal({ team, onClose, onTeamUpdated }) {
             </button>
           </div>
 
-          {/* Team Name */}
           <div className="mb-6">
             <label className="block text-sm font-semibold text-secondary mb-2 font-cormorant">
               Team Name
@@ -134,7 +129,6 @@ export default function TeamModal({ team, onClose, onTeamUpdated }) {
             )}
           </div>
 
-          {/* Team Stats */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-primary/10 p-4 rounded-lg">
               <p className="text-sm text-secondary/70 font-cormorant mb-1">XP</p>
@@ -146,7 +140,6 @@ export default function TeamModal({ team, onClose, onTeamUpdated }) {
             </div>
           </div>
 
-          {/* Team Members */}
           <div className="mb-6">
             <label className="block text-sm font-semibold text-secondary mb-2 font-cormorant">
               Team Members ({team.players?.length || 0})
@@ -177,7 +170,6 @@ export default function TeamModal({ team, onClose, onTeamUpdated }) {
             </div>
           </div>
 
-          {/* Action Buttons */}
           {isEditing && (
             <div className="flex gap-3">
               <button

@@ -1,13 +1,10 @@
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
-// WebSocket configuration
 const WS_BASE_URL = process.env.REACT_APP_WS_URL || 'http://localhost:8080';
 const WS_ENDPOINT = '/ws';
 
-/**
- * WebSocket Service for Game State
- */
+
 class GameStateWebSocketService {
   constructor() {
     this.client = null;
@@ -15,12 +12,11 @@ class GameStateWebSocketService {
     this.connected = false;
   }
 
-  /**
-   * Connect to WebSocket server
-   */
+
   connect(onConnected, onError) {
     if (this.client && this.connected) {
       console.log('🎮 Game WebSocket already connected');
+      if (onConnected) onConnected();
       return;
     }
 
@@ -57,18 +53,16 @@ class GameStateWebSocketService {
     this.client.activate();
   }
 
-  /**
-   * Subscribe to /game/state for initial game state
-   */
+
   subscribeToInitialGameState(callback) {
-    if (!this.client || !this.connected) {
+    if (!this.client || !this.connected || !this.client.connected) {
       console.error('❌ WebSocket not connected - cannot subscribe to initial game state');
       return null;
     }
 
-    console.log('📡 Subscribing to /game/state for initial state...');
+    console.log('📡 Subscribing to /app/game/state for initial state...');
 
-    const subscription = this.client.subscribe('/game/state', (message) => {
+    const subscription = this.client.subscribe('/app/game/state', (message) => {
       console.log('📨 Initial game state received');
       try {
         const data = JSON.parse(message.body);
@@ -80,15 +74,13 @@ class GameStateWebSocketService {
     });
 
     this.subscriptions['game_state'] = subscription;
-    console.log('✅ Subscribed to /game/state');
+    console.log('✅ Subscribed to /app/game/state');
     return subscription;
   }
 
-  /**
-   * Subscribe to /topic/game/state for game state updates
-   */
+
   subscribeToGameStateUpdates(callback) {
-    if (!this.client || !this.connected) {
+    if (!this.client || !this.connected || !this.client.connected) {
       console.error('❌ WebSocket not connected - cannot subscribe to game state updates');
       return null;
     }
@@ -111,9 +103,7 @@ class GameStateWebSocketService {
     return subscription;
   }
 
-  /**
-   * Disconnect from WebSocket
-   */
+
   disconnect() {
     if (this.client) {
       Object.values(this.subscriptions).forEach(sub => sub.unsubscribe());
@@ -124,14 +114,11 @@ class GameStateWebSocketService {
     }
   }
 
-  /**
-   * Check if WebSocket is connected
-   */
+
   isConnected() {
     return this.connected;
   }
 }
 
-// Export singleton instance
 const gameStateWsService = new GameStateWebSocketService();
 export default gameStateWsService;

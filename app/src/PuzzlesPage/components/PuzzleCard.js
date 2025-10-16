@@ -14,7 +14,6 @@ export default function PuzzleCard({ puzzleName, puzzleNumber, description, isSo
 
   return (
     <div className="bg-white bg-opacity-50 rounded-[14px] border-[3px] border-secondary overflow-hidden">
-      {/* Card Header - Always Visible */}
       <div 
         className="px-4 py-4 flex items-center justify-between cursor-pointer"
         onClick={() => !isSolved && setIsExpanded(!isExpanded)}

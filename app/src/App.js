@@ -8,7 +8,10 @@ import StoreMain from './StorePage/StoreMain';
 import WaitingPage from './WaitingPage/WaitingPage';
 import GameNotStarted from './GameNotStarted/GameNotStarted';
 import ArrangingTeamsPage from './ArrangingTeamsPage/ArrangingTeamsPage';
+import GameInProgressPage from './GameInProgressPage/GameInProgressPage';
+import FinishedGamePage from './FinishedGamePage/FinishedGamePage';
 import { isPlayerLoggedIn } from './LoginPage/services/authService';
+import { getCurrentGameState } from './services/gameService';
 import gameStateWsService from './services/gameStateWebSocketService';
 
 // Game States
@@ -29,6 +32,10 @@ function App() {
     return savedState || null;
   });
   const [wsConnected, setWsConnected] = useState(false);
+  const [hasReceivedInitialState, setHasReceivedInitialState] = useState(() => {
+    const savedState = localStorage.getItem('gameState');
+    return !!savedState; 
+  });
 
   useEffect(() => {
     setIsLoggedIn(isPlayerLoggedIn());
@@ -42,41 +49,81 @@ function App() {
   }, []);
 
   useEffect(() => {
+    console.log('🎮 Game state changed to:', gameState);
+    
+    const loginStatus = isPlayerLoggedIn();
+    console.log('🔐 Login status:', loginStatus);
+    setIsLoggedIn(loginStatus);
+    
     if (gameState) {
       localStorage.setItem('gameState', gameState);
+    }
+    
+    if (gameState === GAME_STATES.NOT_STARTED) {
+      console.log('🗑️ Game reset to NOT_STARTED - clearing player data');
+      localStorage.removeItem('player');
+      localStorage.removeItem('playerId');
+      localStorage.removeItem('team');
+      localStorage.removeItem('teamId');
+      setIsLoggedIn(false);
     }
   }, [gameState]);
 
   useEffect(() => {
     console.log('🎮 Connecting to Game State WebSocket...');
     
+    const fetchGameStateViaAPI = async () => {
+      try {
+        const state = await getCurrentGameState();
+        const newState = state.state || state.gameState || state;
+        console.log('✅ Game state fetched via API:', newState);
+        setGameState(newState);
+        setHasReceivedInitialState(true);
+      } catch (error) {
+        console.error('❌ Failed to fetch game state via API:', error);
+        if (!gameState) {
+          setGameState(GAME_STATES.NOT_STARTED);
+        }
+        setHasReceivedInitialState(true);
+      }
+    };
+    
+    const loadingTimeout = setTimeout(() => {
+      if (!hasReceivedInitialState) {
+        console.warn('⚠️ Timeout waiting for WebSocket initial game state, trying REST API...');
+        fetchGameStateViaAPI();
+      }
+    }, 3000);
+    
     gameStateWsService.connect(
       () => {
         console.log('✅ Game State WebSocket connected');
         setWsConnected(true);
 
-        // Subscribe to initial game state
         gameStateWsService.subscribeToInitialGameState((state) => {
           console.log('📋 Initial game state:', state);
           const newState = state.state || state.gameState || state;
           setGameState(newState);
+          setHasReceivedInitialState(true);
+          clearTimeout(loadingTimeout); 
         });
 
-        // Subscribe to game state updates
         gameStateWsService.subscribeToGameStateUpdates((state) => {
           console.log('🔄 Game state updated:', state);
           const newState = state.state || state.gameState || state;
           setGameState(newState);
         });
       },
-      // onError
       (error) => {
         console.error('❌ Game State WebSocket error:', error);
         setWsConnected(false);
+        clearTimeout(loadingTimeout);
+        fetchGameStateViaAPI();
       }
     );
 
     return () => {
+      clearTimeout(loadingTimeout);
       gameStateWsService.disconnect();
     };
   }, []);
@@ -87,7 +134,7 @@ function App() {
   };
 
   const renderCurrentPage = () => {
-    if (!gameState && !wsConnected) {
+    if (!hasReceivedInitialState) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-background">
           <div className="text-center">
@@ -98,6 +145,7 @@ function App() {
       );
     }
 
+    console.log('🎬 Rendering page for game state:', gameState, 'isLoggedIn:', isLoggedIn);
 
     switch(gameState) {
       case GAME_STATES.NOT_STARTED:
@@ -110,11 +158,14 @@ function App() {
         return <WaitingPage />;
       
       case GAME_STATES.ARRANGING_TEAMS:
+        if (!isLoggedIn) {
+          return <GameInProgressPage />;
+        }
         return <ArrangingTeamsPage />;
       
       case GAME_STATES.IN_PROGRESS:
         if (!isLoggedIn) {
-          return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+          return <GameInProgressPage />;
         }
         
         switch(currentPage) {
@@ -129,7 +180,7 @@ function App() {
         }
       
       case GAME_STATES.FINISHED:
-        return <LeaderboardMain onNavigate={setCurrentPage} />;
+        return <FinishedGamePage onNavigate={setCurrentPage} />;
       
       default:
         return <GameNotStarted />;
@@ -137,7 +188,7 @@ function App() {
   };
 
   return (
-    <div className="block lg:hidden">
+    <div className="block lg:hidden" key={`app-${gameState}-${isLoggedIn}`}>
       {renderCurrentPage()}
     </div>
   );

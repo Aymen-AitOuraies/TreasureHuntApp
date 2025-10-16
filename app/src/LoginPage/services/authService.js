@@ -1,11 +1,6 @@
-// API Base URL - Update this with your actual backend URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
-/**
- * Player Login/Registration
- * @param {Object} playerData - Player data containing fullName and username
- * @returns {Promise<Object>} - Response with player data
- */
+
 export const loginPlayer = async (playerData) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/players`, {
@@ -39,10 +34,7 @@ export const loginPlayer = async (playerData) => {
   }
 };
 
-/**
- * Save player data to localStorage
- * @param {Object} playerData - Player data to store
- */
+
 export const savePlayerToLocalStorage = (playerData) => {
   try {
     localStorage.setItem('player', JSON.stringify(playerData));
@@ -53,10 +45,7 @@ export const savePlayerToLocalStorage = (playerData) => {
   }
 };
 
-/**
- * Get player data from localStorage
- * @returns {Object|null} - Player data or null if not found
- */
+
 export const getPlayerFromLocalStorage = () => {
   try {
     const playerData = localStorage.getItem('player');
@@ -67,9 +56,7 @@ export const getPlayerFromLocalStorage = () => {
   }
 };
 
-/**
- * Clear player data from localStorage (logout)
- */
+
 export const clearPlayerFromLocalStorage = () => {
   try {
     localStorage.removeItem('player');
@@ -80,10 +67,7 @@ export const clearPlayerFromLocalStorage = () => {
   }
 };
 
-/**
- * Check if player is logged in
- * @returns {boolean} - True if player data exists in localStorage
- */
+
 export const isPlayerLoggedIn = () => {
   return getPlayerFromLocalStorage() !== null;
 };

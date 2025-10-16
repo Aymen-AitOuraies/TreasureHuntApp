@@ -1,50 +1,61 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { getTeamByPlayerId, saveTeamToLocalStorage, getTeamFromLocalStorage } from "../services/teamService";
 import { getPlayerFromLocalStorage } from "../LoginPage/services/authService";
 import { getGameSettings, saveGameSettingsToLocalStorage, getGameSettingsFromLocalStorage } from "../services/gameService";
+import { getLeaderboardFromLocalStorage } from "../services/leaderboardService";
 import teamWsService from "../services/teamWebSocketService";
+import leaderboardWsService from "../services/leaderboardWebSocketService";
 
 export default function PlayerInfo() {
   const [player, setPlayer] = useState(null);
   const [team, setTeam] = useState(null);
+  const [teamRank, setTeamRank] = useState(null);
   const [gameSettings, setGameSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const hasSubscribed = useRef(false); 
+  const hasSubscribedLeaderboard = useRef(false);
+  const leaderboardCallbackRef = useRef(null);
 
   useEffect(() => {
-    // Get player from localStorage
     const playerData = getPlayerFromLocalStorage();
     console.log('👤 PlayerInfo: Player data from localStorage:', playerData);
     setPlayer(playerData);
 
-    // Fetch game settings
     fetchGameSettings();
+    
+    const cachedLeaderboard = getLeaderboardFromLocalStorage();
+    if (cachedLeaderboard) {
+      console.log('📦 PlayerInfo: Checking cached leaderboard for rank');
+      updateTeamRank(cachedLeaderboard);
+    }
 
     if (playerData?.id) {
       console.log('✅ PlayerInfo: Player ID found:', playerData.id);
       fetchTeamData(playerData.id);
       connectToTeamWebSocket();
+      connectToLeaderboardWebSocket();
     } else {
       console.error('❌ PlayerInfo: No player ID found in localStorage');
       setLoading(false);
     }
 
     return () => {
-      // Cleanup WebSocket on unmount
       if (team?.id) {
         teamWsService.unsubscribeFromTeam(team.id);
+      }
+      if (leaderboardCallbackRef.current) {
+        leaderboardWsService.removeCallback(leaderboardCallbackRef.current);
       }
     };
   }, []);
 
   const fetchGameSettings = async () => {
-    // First try to get from localStorage
     const cachedSettings = getGameSettingsFromLocalStorage();
     if (cachedSettings) {
       console.log('📦 PlayerInfo: Using cached game settings', cachedSettings);
       setGameSettings(cachedSettings);
     }
 
-    // Then fetch fresh data from API
     try {
       const settings = await getGameSettings();
       console.log('✅ PlayerInfo: Game settings fetched', settings);
@@ -52,15 +63,13 @@ export default function PlayerInfo() {
       saveGameSettingsToLocalStorage(settings);
     } catch (error) {
       console.error('❌ PlayerInfo: Failed to fetch game settings:', error);
-      // Use default if no cached settings
       if (!cachedSettings) {
-        setGameSettings({ xpPerLevel: 75 }); // Default fallback
+        setGameSettings({ xpPerLevel: 75 }); 
       }
     }
   };
 
   const fetchTeamData = async (playerId) => {
-    // First try to get from localStorage
     const cachedTeam = getTeamFromLocalStorage();
     if (cachedTeam) {
       console.log('📦 PlayerInfo: Using cached team data', cachedTeam);
@@ -68,7 +77,6 @@ export default function PlayerInfo() {
       setLoading(false);
     }
 
-    // Then fetch fresh data from API
     try {
       console.log('🔄 PlayerInfo: Fetching team data for player:', playerId);
       const teamData = await getTeamByPlayerId(playerId);
@@ -80,7 +88,6 @@ export default function PlayerInfo() {
       console.error('❌ PlayerInfo: Failed to fetch team data:', error);
       console.error('❌ PlayerInfo: Error details:', error.message);
       
-      // If no cached data, set a fallback based on error
       if (!cachedTeam) {
         if (error.message && error.message.includes('not assigned to any team')) {
           setTeam({
@@ -105,49 +112,111 @@ export default function PlayerInfo() {
   };
 
   const connectToTeamWebSocket = () => {
-    if (!teamWsService.isConnected()) {
-      teamWsService.connect(
-        // onConnected
-        () => {
-          console.log('✅ PlayerInfo: Team WebSocket connected');
-          
-          // Subscribe to team updates once we have team data
-          const cachedTeam = getTeamFromLocalStorage();
-          if (cachedTeam?.id) {
-            subscribeToTeamUpdates(cachedTeam.id);
-          }
-        },
-        // onError
-        (error) => {
-          console.error('❌ PlayerInfo: Team WebSocket connection error:', error);
+    teamWsService.connect(
+      () => {
+        console.log('✅ PlayerInfo: Team WebSocket connected');
+        
+        const cachedTeam = getTeamFromLocalStorage();
+        if (cachedTeam?.id && !hasSubscribed.current) {
+          subscribeToTeamUpdates(cachedTeam.id);
         }
-      );
-    } else {
-      // Already connected, just subscribe
-      const cachedTeam = getTeamFromLocalStorage();
-      if (cachedTeam?.id) {
-        subscribeToTeamUpdates(cachedTeam.id);
+      },
+      (error) => {
+        console.error('❌ PlayerInfo: Team WebSocket connection error:', error);
       }
-    }
+    );
   };
 
   const subscribeToTeamUpdates = (teamId) => {
+    if (hasSubscribed.current) {
+      console.log('⚠️ PlayerInfo: Already subscribed to team updates');
+      return;
+    }
+    
+    console.log('📡 PlayerInfo: Subscribing to team updates for team:', teamId);
     teamWsService.subscribeToTeamUpdates(teamId, (updatedTeam) => {
       console.log('🔄 PlayerInfo: Team updated via WebSocket:', updatedTeam);
       setTeam(updatedTeam);
       saveTeamToLocalStorage(updatedTeam);
     });
+    hasSubscribed.current = true;
   };
 
-  // Subscribe to team updates when team data is loaded
+  const connectToLeaderboardWebSocket = () => {
+    if (hasSubscribedLeaderboard.current) {
+      console.log('⚠️ PlayerInfo: Already subscribed to leaderboard');
+      return;
+    }
+
+    leaderboardWsService.connect(
+      () => {
+        console.log('✅ PlayerInfo: Leaderboard WebSocket connected');
+        subscribeToLeaderboard();
+      },
+      (error) => {
+        console.error('❌ PlayerInfo: Leaderboard WebSocket connection error:', error);
+      }
+    );
+  };
+
+  const subscribeToLeaderboard = () => {
+    if (hasSubscribedLeaderboard.current) {
+      return;
+    }
+    const callback = (leaderboardData) => {
+      console.log('🔄 PlayerInfo: Leaderboard updated via WebSocket', leaderboardData);
+      
+      updateTeamRank(leaderboardData);
+    };
+    
+    leaderboardCallbackRef.current = callback;
+    leaderboardWsService.subscribeToLeaderboard(callback);
+
+    hasSubscribedLeaderboard.current = true;
+  };
+
+  const updateTeamRank = (leaderboardData) => {
+    const currentTeam = getTeamFromLocalStorage();
+    if (currentTeam?.id && leaderboardData) {
+      const teamInLeaderboard = leaderboardData.find(t => t.id === currentTeam.id);
+      if (teamInLeaderboard) {
+        console.log(`🏆 PlayerInfo: Team rank updated to ${teamInLeaderboard.rank}`);
+        console.log(`📊 PlayerInfo: Team XP: ${teamInLeaderboard.xp}, Level: ${teamInLeaderboard.level}`);
+        
+        setTeamRank(teamInLeaderboard.rank);
+        
+        setTeam(prevTeam => {
+          if (!prevTeam) return prevTeam;
+          
+          const updatedTeam = {
+            ...prevTeam,
+            xp: teamInLeaderboard.xp,
+            level: teamInLeaderboard.level
+          };
+          
+          saveTeamToLocalStorage(updatedTeam);
+          
+          return updatedTeam;
+        });
+      } else {
+        console.log('⚠️ PlayerInfo: Team not found in leaderboard');
+      }
+    }
+  };
+
   useEffect(() => {
-    if (team?.id && teamWsService.isConnected()) {
+    if (team?.id && !hasSubscribed.current) {
       subscribeToTeamUpdates(team.id);
+      
+      const cachedLeaderboard = getLeaderboardFromLocalStorage();
+      if (cachedLeaderboard && !teamRank) {
+        console.log('📦 PlayerInfo: Updating rank from cached leaderboard after team loaded');
+        updateTeamRank(cachedLeaderboard);
+      }
     }
   }, [team?.id]);
 
-  // Calculate XP for next level (simple formula: level * xpPerLevel)
-  const xpPerLevel = gameSettings?.xpperLevel || 75; // Note: API returns 'xpperLevel' (lowercase 'p')
+  const xpPerLevel = gameSettings?.xpperLevel || 75; 
   const maxXP = team?.level ? team.level * xpPerLevel : xpPerLevel;
   const currentXP = team?.xp || 0;
 
@@ -163,21 +232,14 @@ export default function PlayerInfo() {
           </p>
         </div>
         
-        <div className="flex flex-col items-end space-y-2">
+        <div className="flex flex-col items-end">
           <div className="flex items-center space-x-2">
-            <span className="text-[20px] font-cormorant font-bold">{team?.xp || 0}</span>
-            <img 
-              src="/assets/GlobalAssets/CoinsIcon.png" 
-              alt="XP" 
-              className="w-[34px] h-[34px]"
-            />
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <span className="text-[20px] font-cormorant font-bold">{team?.id || '-'}</span>
+            <span className="text-[20px] font-cormorant font-bold">
+              {teamRank !== null ? `#${teamRank}` : '-'}
+            </span>
             <img 
               src="/assets/GlobalAssets/RankingCoin.png" 
-              alt="Team ID" 
+              alt="Team Rank" 
               className="w-[34px] h-[34px]"
             />
           </div>

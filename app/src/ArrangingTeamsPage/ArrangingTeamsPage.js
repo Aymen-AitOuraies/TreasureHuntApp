@@ -24,7 +24,6 @@ export default function ArrangingTeamsPage() {
         
         <div className="pt-24 flex flex-col items-center justify-center min-h-screen px-4">
           <div className="text-center max-w-2xl">
-            {/* Animated Icon */}
             <div className="mb-8 flex justify-center">
               <div className="relative">
                 <div className="w-32 h-32 rounded-full bg-secondary/20 flex items-center justify-center animate-pulse">
@@ -45,26 +44,16 @@ export default function ArrangingTeamsPage() {
               </div>
             </div>
 
-            {/* Title */}
             <h1 className="text-4xl md:text-5xl font-bold text-secondary mb-4">
               Arranging Teams
             </h1>
             
-            {/* Description */}
-            <p className="text-xl text-secondary/80 mb-8">
-              The admin is organizing teams for the treasure hunt.
-              <br />
-              Please wait while teams are being formed...
-            </p>
-
-            {/* Loading Animation */}
             <div className="flex justify-center items-center space-x-2">
               <div className="w-3 h-3 bg-secondary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
               <div className="w-3 h-3 bg-secondary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
               <div className="w-3 h-3 bg-secondary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
             </div>
 
-            {/* Info Box */}
             <div className="mt-12 bg-primary/10 border-2 border-primary/30 rounded-lg p-6">
               <p className="text-secondary font-cormorant text-lg">
                 <strong>Note:</strong> You'll be automatically redirected once the teams are ready and the game begins.

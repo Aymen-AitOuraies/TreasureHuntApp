@@ -1,31 +1,132 @@
-import react from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Layout from "../components/Layout";
 import DecorativeTitle from "../components/DecorativeTitle";
 import LeaderboardCard from "./components/LeaderboardCard";
+import { saveLeaderboardToLocalStorage, getLeaderboardFromLocalStorage } from "../services/leaderboardService";
+import { getGameSettings, getGameSettingsFromLocalStorage } from "../services/gameService";
+import leaderboardWsService from "../services/leaderboardWebSocketService";
+
 export default function LeaderboardMain({ onNavigate }) {
-  const leaderboardData = [
-   { rank: 1, teamName: "Hunters", level: 5, currentXP: 180, maxXP: 300 },
-              { rank: 2, teamName: "Snipers", level: 4, currentXP: 220, maxXP: 250 },
-              { rank: 3, teamName: "Vikings", level: 4, currentXP: 150, maxXP: 250 },
-              { rank: 4, teamName: "Demons", level: 3, currentXP: 120, maxXP: 200 },
-              { rank: 5, teamName: "Pirates", level: 3, currentXP: 80, maxXP: 200 },
-  ];
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [gameSettings, setGameSettings] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const hasSubscribed = useRef(false);
+  const callbackRef = useRef(null); 
+
+  useEffect(() => {
+    const cachedLeaderboard = getLeaderboardFromLocalStorage();
+    if (cachedLeaderboard) {
+      console.log('📦 LeaderboardMain: Using cached leaderboard', cachedLeaderboard);
+      setLeaderboard(cachedLeaderboard);
+      setLoading(false);
+    }
+
+    const cachedSettings = getGameSettingsFromLocalStorage();
+    if (cachedSettings) {
+      setGameSettings(cachedSettings);
+    } else {
+      fetchGameSettings();
+    }
+
+    connectToLeaderboardWebSocket();
+
+    return () => {
+      if (callbackRef.current) {
+        leaderboardWsService.removeCallback(callbackRef.current);
+        hasSubscribed.current = false;
+      }
+    };
+  }, []);
+
+  const fetchGameSettings = async () => {
+    try {
+      const settings = await getGameSettings();
+      setGameSettings(settings);
+    } catch (error) {
+      console.error('❌ LeaderboardMain: Failed to fetch game settings:', error);
+      setGameSettings({ xpperLevel: 75 }); 
+    }
+  };
+
+  const connectToLeaderboardWebSocket = () => {
+    if (hasSubscribed.current) {
+      console.log('⚠️ LeaderboardMain: Already subscribed');
+      return;
+    }
+
+    leaderboardWsService.connect(
+      () => {
+        console.log('✅ LeaderboardMain: Leaderboard WebSocket connected');
+        subscribeToLeaderboard();
+      },
+      (error) => {
+        console.error('❌ LeaderboardMain: Leaderboard WebSocket connection error:', error);
+        setLoading(false);
+      }
+    );
+  };
+
+  const subscribeToLeaderboard = () => {
+    if (hasSubscribed.current) {
+      return;
+    }
+
+    const callback = (leaderboardData) => {
+      console.log('🔄 LeaderboardMain: Leaderboard updated via WebSocket:', leaderboardData);
+      setLeaderboard(leaderboardData);
+      saveLeaderboardToLocalStorage(leaderboardData);
+      setLoading(false);
+    };
+    
+    callbackRef.current = callback;
+    leaderboardWsService.subscribeToLeaderboard(callback);
+
+    hasSubscribed.current = true;
+  };
+
+  const calculateMaxXP = (level) => {
+    const xpPerLevel = gameSettings?.xpperLevel || 75;
+    return level * xpPerLevel;
+  };
+
+  if (loading && leaderboard.length === 0) {
+    return (
+      <Layout onNavigate={onNavigate} currentPage="leaderboard">
+        <div className="-mt-14">
+          <DecorativeTitle title="Leaderboard" />
+          <div className="mt-8 flex justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-secondary mx-auto mb-4"></div>
+              <p className="text-secondary font-cormorant text-xl">Loading leaderboard...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout onNavigate={onNavigate} currentPage="leaderboard">
       <div className="-mt-14">
-          <DecorativeTitle title="Leaderboard" />
-          <div className="mt-8 space-y-3">
-            {leaderboardData.map((team) => (
+        <DecorativeTitle title="Leaderboard" />
+        <div className="mt-8 space-y-3">
+          {leaderboard.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-secondary font-cormorant text-xl">No teams yet</p>
+            </div>
+          ) : (
+            leaderboard.map((team) => (
               <LeaderboardCard
-                key={team.rank}
+                key={team.id}
                 rank={team.rank}
-                teamName={team.teamName}
+                teamName={team.name}
                 level={team.level}
-                currentXP={team.currentXP}
-                maxXP={team.maxXP}
+                currentXP={team.xp}
+                maxXP={calculateMaxXP(team.level)}
               />
-            ))}
-          </div>
+            ))
+          )}
+        </div>
       </div>
     </Layout>
   );
