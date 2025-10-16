@@ -3,7 +3,9 @@ import Header from "./Header";
 import PlayerInfo from "./PlayerInfo";
 import NavBar from "./NavBar";
 
-export default function Layout({ children, onNavigate, currentPage }) {
+export default function Layout({ children, onNavigate, currentPage, showTeamIcon = true }) {
+  console.log('📐 Layout rendered with showTeamIcon:', showTeamIcon);
+  
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat relative"
@@ -21,7 +23,7 @@ export default function Layout({ children, onNavigate, currentPage }) {
 
       <div className="relative z-10">
         <div className="fixed top-0 left-0 right-0 z-20">
-          <Header />
+          <Header showTeamIcon={showTeamIcon} />
         </div>
         
         <div className="pt-20">

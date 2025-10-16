@@ -13,7 +13,7 @@ export default function LeaderboardMain({ onNavigate }) {
   return (
     <Layout onNavigate={onNavigate} currentPage="leaderboard">
       <div className="-mt-14">
-          <DecorativeTitle title="Global Standing" />
+          <DecorativeTitle title="Leaderboard" />
           <div className="mt-8 space-y-3">
             {leaderboardData.map((team) => (
               <LeaderboardCard
