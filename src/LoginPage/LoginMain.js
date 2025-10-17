@@ -50,7 +50,7 @@ export default function LoginPage({ onLoginSuccess }) {
                 backgroundSize: '100% 100%',
             }}
         >
-            <div className="flex items-center justify-center min-h-full flex-col px-6 pt-[40vh] pb-20">
+            <div className="flex items-center justify-center min-h-full flex-col px-6 pt-[50vh] pb-20">
                 <div className="text-center w-full mb-8">
                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-secondary leading-tight">
                         Welcome To Treasure Hunt
