@@ -1,15 +1,119 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
 
-export default function PuzzleCard({ puzzleName, puzzleNumber, description, isSolved, onSubmit }) {
+export default function PuzzleCard({ 
+  puzzleName, 
+  puzzleNumber, 
+  description, 
+  isSolved, 
+  onSubmit,
+  attemptsUntilCooldown = 3,
+  cooldownDuration = 60
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [answer, setAnswer] = useState("");
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [isOnCooldown, setIsOnCooldown] = useState(false);
+  const [cooldownTimeLeft, setCooldownTimeLeft] = useState(0);
+  const [errorMessage, setErrorMessage] = useState("");
+  const cooldownTimerRef = useRef(null);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (onSubmit) {
-      onSubmit(puzzleNumber, answer);
+  // Load cooldown state from localStorage on mount
+  useEffect(() => {
+    const cooldownKey = `puzzle_cooldown_${puzzleNumber}`;
+    const savedCooldown = localStorage.getItem(cooldownKey);
+    
+    if (savedCooldown) {
+      const { endTime, attempts } = JSON.parse(savedCooldown);
+      const now = Date.now();
+      
+      if (endTime > now) {
+        // Still on cooldown
+        setIsOnCooldown(true);
+        setFailedAttempts(attempts);
+        setCooldownTimeLeft(Math.ceil((endTime - now) / 1000));
+      } else {
+        // Cooldown expired, clear it
+        localStorage.removeItem(cooldownKey);
+        setFailedAttempts(0);
+      }
     }
+  }, [puzzleNumber]);
+
+  // Cooldown timer
+  useEffect(() => {
+    if (isOnCooldown && cooldownTimeLeft > 0) {
+      cooldownTimerRef.current = setInterval(() => {
+        setCooldownTimeLeft((prev) => {
+          if (prev <= 1) {
+            // Cooldown finished
+            setIsOnCooldown(false);
+            setFailedAttempts(0);
+            const cooldownKey = `puzzle_cooldown_${puzzleNumber}`;
+            localStorage.removeItem(cooldownKey);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (cooldownTimerRef.current) {
+        clearInterval(cooldownTimerRef.current);
+      }
+    };
+  }, [isOnCooldown, cooldownTimeLeft, puzzleNumber]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (isOnCooldown) {
+      return;
+    }
+
+    setErrorMessage("");
+
+    if (onSubmit) {
+      try {
+        await onSubmit(puzzleNumber, answer);
+        // Success - reset attempts
+        setFailedAttempts(0);
+        setAnswer("");
+        setErrorMessage("");
+        const cooldownKey = `puzzle_cooldown_${puzzleNumber}`;
+        localStorage.removeItem(cooldownKey);
+      } catch (error) {
+        // Failed attempt
+        setErrorMessage(error.message || 'Incorrect answer');
+        const newAttempts = failedAttempts + 1;
+        setFailedAttempts(newAttempts);
+        
+        if (newAttempts >= attemptsUntilCooldown) {
+          // Start cooldown
+          startCooldown();
+        }
+      }
+    }
+  };
+
+  const startCooldown = () => {
+    setIsOnCooldown(true);
+    setCooldownTimeLeft(cooldownDuration);
+    
+    // Save cooldown to localStorage
+    const cooldownKey = `puzzle_cooldown_${puzzleNumber}`;
+    const endTime = Date.now() + (cooldownDuration * 1000);
+    localStorage.setItem(cooldownKey, JSON.stringify({
+      endTime,
+      attempts: failedAttempts + 1
+    }));
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -56,16 +160,47 @@ export default function PuzzleCard({ puzzleName, puzzleNumber, description, isSo
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               className="bg-primary border-none outline-none p-3 rounded-md w-full placeholder:text-background text-background font-cormorant text-xl"
+              disabled={isOnCooldown}
             />
 
             <div className="h-3"></div>
 
-            <button
-              onClick={handleSubmit}
-              className="bg-secondary text-background text-[24px] font-cormorant p-3 rounded-[27px] w-full cursor-pointer"
-            >
-              Submit Answer
-            </button>
+            {errorMessage && !isOnCooldown && (
+              <div className="bg-secondary/20 border-2 border-secondary text-secondary px-3 py-2 rounded-lg w-full text-center mb-3">
+                <p className="font-cormorant font-semibold text-sm">{errorMessage}</p>
+              </div>
+            )}
+
+            {isOnCooldown ? (
+              <div className="bg-primary/30 border-2 border-secondary text-secondary px-4 py-3 rounded-lg w-full text-center">
+                <div className="flex items-center justify-center space-x-2">
+                  <Icon icon="mdi:clock-alert" className="text-2xl" />
+                  <div>
+                    <p className="font-cormorant font-bold text-lg">Cooldown Active</p>
+                    <p className="font-cormorant text-base font-semibold">
+                      Try again in {formatTime(cooldownTimeLeft)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                {failedAttempts > 0 && failedAttempts < attemptsUntilCooldown && (
+                  <div className="bg-primary/40 border-2 border-secondary text-secondary px-3 py-2 rounded-lg w-full text-center mb-3">
+                    <p className="font-cormorant font-semibold text-sm">
+                      {attemptsUntilCooldown - failedAttempts} attempt{attemptsUntilCooldown - failedAttempts > 1 ? 's' : ''} remaining
+                    </p>
+                  </div>
+                )}
+                
+                <button
+                  onClick={handleSubmit}
+                  className="bg-secondary text-background text-[24px] font-cormorant p-3 rounded-[27px] w-full cursor-pointer hover:opacity-90 transition-opacity"
+                >
+                  Submit Answer
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -5,6 +5,7 @@ import PuzzleCard from "./components/PuzzleCard";
 import SuccessAnimation from "./components/SuccessAnimation";
 import { getTeamPuzzles, submitPuzzleAnswer, saveTeamPuzzlesToLocalStorage, getTeamPuzzlesFromLocalStorage } from "../services/puzzleService";
 import { getTeamFromLocalStorage } from "../services/teamService";
+import { getGameSettings, getGameSettingsFromLocalStorage } from "../services/gameService";
 import puzzleWsService from "../services/puzzleWebSocketService";
 
 export default function PuzzlesMain({ onNavigate }) {
@@ -13,11 +14,15 @@ export default function PuzzlesMain({ onNavigate }) {
   const [team, setTeam] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [gameSettings, setGameSettings] = useState(null);
 
   useEffect(() => {
     const teamData = getTeamFromLocalStorage();
     console.log('🧩 PuzzlesMain: Team data from localStorage:', teamData);
     setTeam(teamData);
+
+    // Fetch game settings
+    fetchGameSettings();
 
     if (teamData?.id) {
       console.log('✅ PuzzlesMain: Team ID found:', teamData.id);
@@ -34,6 +39,26 @@ export default function PuzzlesMain({ onNavigate }) {
       }
     };
   }, []);
+
+  const fetchGameSettings = async () => {
+    const cachedSettings = getGameSettingsFromLocalStorage();
+    if (cachedSettings) {
+      console.log('📦 PuzzlesMain: Using cached game settings', cachedSettings);
+      setGameSettings(cachedSettings);
+    }
+
+    try {
+      const settings = await getGameSettings();
+      console.log('✅ PuzzlesMain: Game settings fetched', settings);
+      setGameSettings(settings);
+    } catch (error) {
+      console.error('❌ PuzzlesMain: Failed to fetch game settings:', error);
+      if (!cachedSettings) {
+        // Default fallback values
+        setGameSettings({ attemptsUntilCooldown: 3, cooldownDuration: 60 });
+      }
+    }
+  };
 
   const fetchPuzzles = async (teamId) => {
     const cachedPuzzles = getTeamPuzzlesFromLocalStorage(teamId);
@@ -86,8 +111,7 @@ export default function PuzzlesMain({ onNavigate }) {
   const handleSubmitAnswer = async (puzzleId, answer) => {
     if (!team?.id) {
       console.error('❌ No team ID available');
-      alert('No team assigned. Please contact an administrator.');
-      return;
+      throw new Error('No team assigned. Please contact an administrator.');
     }
 
     try {
@@ -98,10 +122,16 @@ export default function PuzzlesMain({ onNavigate }) {
       if (response.success) {
         setSuccessMessage(response.message || 'Correct answer!');
         setShowSuccess(true);
+        // Return to indicate success
+        return response;
+      } else {
+        // Wrong answer - throw error to trigger cooldown
+        throw new Error(response.message || 'Incorrect answer');
       }
     } catch (error) {
       console.error('❌ Error submitting answer:', error);
-      alert(error.message || 'Failed to submit answer. Please try again.');
+      // Re-throw to let PuzzleCard handle cooldown
+      throw error;
     }
   };
 
@@ -158,6 +188,8 @@ export default function PuzzlesMain({ onNavigate }) {
                 isSolved={puzzle.solved}
                 onSubmit={handleSubmitAnswer}
                 puzzleData={puzzle}
+                attemptsUntilCooldown={gameSettings?.attemptsUntilCooldown || 3}
+                cooldownDuration={gameSettings?.cooldownDuration || 60}
               />
             ))
           )}
