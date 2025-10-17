@@ -50,7 +50,7 @@ export default function LoginPage({ onLoginSuccess }) {
                 backgroundSize: '100% 100%',
             }}
         >
-            <div className="flex items-center justify-center h-full flex-col px-6 pt-[40vh]">
+            <div className="flex items-center justify-center h-full flex-col px-6 pt-[40vh] pb-32">
                 <div className="text-center w-full mb-8">
                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-secondary leading-tight">
                         Welcome To Treasure Hunt
@@ -103,11 +103,11 @@ export default function LoginPage({ onLoginSuccess }) {
                 </form>
             </div>
             
-            <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+            <div className="absolute bottom-2 left-0 right-0 flex justify-center">
                 <img 
                     src="/assets/AuthAssets/1337Logo.png" 
                     alt="1337 Logo" 
-                    className="h-24 sm:h-28 md:h-36 w-auto"
+                    className="h-20 sm:h-24 md:h-32 w-auto"
                 />
             </div>
         </div>
