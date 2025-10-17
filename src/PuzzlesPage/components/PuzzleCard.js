@@ -126,9 +126,6 @@ export default function PuzzleCard({
         onClick={() => !isSolved && setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center space-x-3">
-          <span className="text-secondary font-corben font-bold text-[30px]">
-            {puzzleNumber}
-          </span>
           <span className="text-secondary font-cormorant font-bold text-[24px]">
             {puzzleName}
           </span>
