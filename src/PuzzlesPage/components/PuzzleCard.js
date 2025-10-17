@@ -16,6 +16,7 @@ export default function PuzzleCard({
   const [isOnCooldown, setIsOnCooldown] = useState(false);
   const [cooldownTimeLeft, setCooldownTimeLeft] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const cooldownTimerRef = useRef(null);
 
   // Load cooldown state from localStorage on mount
@@ -68,11 +69,12 @@ export default function PuzzleCard({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (isOnCooldown) {
+    if (isOnCooldown || isSubmitting) {
       return;
     }
 
     setErrorMessage("");
+    setIsSubmitting(true);
 
     if (onSubmit) {
       try {
@@ -93,6 +95,8 @@ export default function PuzzleCard({
           // Start cooldown
           startCooldown();
         }
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
@@ -195,9 +199,12 @@ export default function PuzzleCard({
                 
                 <button
                   onClick={handleSubmit}
-                  className="bg-secondary text-background text-[24px] font-cormorant p-3 rounded-[27px] w-full cursor-pointer hover:opacity-90 transition-opacity"
+                  disabled={isSubmitting}
+                  className={`bg-secondary text-background text-[24px] font-cormorant p-3 rounded-[27px] w-full transition-opacity ${
+                    isSubmitting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-90'
+                  }`}
                 >
-                  Submit Answer
+                  {isSubmitting ? 'Submitting...' : 'Submit Answer'}
                 </button>
               </>
             )}
