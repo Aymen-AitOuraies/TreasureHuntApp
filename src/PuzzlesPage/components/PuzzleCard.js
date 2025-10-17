@@ -19,7 +19,6 @@ export default function PuzzleCard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const cooldownTimerRef = useRef(null);
 
-  // Load cooldown state from localStorage on mount
   useEffect(() => {
     const cooldownKey = `puzzle_cooldown_${puzzleNumber}`;
     const savedCooldown = localStorage.getItem(cooldownKey);
