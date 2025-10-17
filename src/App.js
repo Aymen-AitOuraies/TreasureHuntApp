@@ -180,6 +180,9 @@ function App() {
         }
       
       case GAME_STATES.FINISHED:
+        if (!isLoggedIn) {
+          return <GameInProgressPage />;
+        }
         return <FinishedGamePage onNavigate={setCurrentPage} />;
       
       default:

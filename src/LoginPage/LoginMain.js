@@ -52,7 +52,7 @@ export default function LoginPage({ onLoginSuccess }) {
         >
             <div className="flex items-center justify-center h-full flex-col px-6 pt-[40vh]">
                 <div className="text-center w-full mb-8">
-                    <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-secondary leading-tight">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-secondary leading-tight">
                         Welcome To Treasure Hunt
                     </h1>
                 </div>
@@ -63,33 +63,33 @@ export default function LoginPage({ onLoginSuccess }) {
                             placeholder="Full Name"
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
-                            className={`bg-primary border-2 ${fieldErrors.fullName ? 'border-red-500' : 'border-transparent'} outline-none p-3 rounded-md w-full placeholder:text-background text-background font-cormorant text-xl`}
+                            className={`bg-primary border-2 ${fieldErrors.fullName ? 'border-secondary' : 'border-transparent'} outline-none p-3 rounded-md w-full placeholder:text-background text-background font-cormorant text-xl`}
                             required
                             disabled={loading}
                         />
                         {fieldErrors.fullName && (
-                            <p className="text-red-600 text-sm mt-1 ml-2 font-cormorant">{fieldErrors.fullName}</p>
+                            <p className="text-secondary text-sm mt-1 ml-2 font-cormorant font-semibold">{fieldErrors.fullName}</p>
                         )}
                     </div>
                     
                     <div className="w-[90%] max-w-md">
                         <input 
                             type="text" 
-                            placeholder="Username"
+                            placeholder="Intra Login"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className={`bg-primary border-2 ${fieldErrors.username ? 'border-red-500' : 'border-transparent'} outline-none p-3 rounded-md w-full placeholder:text-background text-background font-cormorant text-xl`}
+                            className={`bg-primary border-2 ${fieldErrors.username ? 'border-secondary' : 'border-transparent'} outline-none p-3 rounded-md w-full placeholder:text-background text-background font-cormorant text-xl`}
                             required
                             disabled={loading}
                         />
                         {fieldErrors.username && (
-                            <p className="text-red-600 text-sm mt-1 ml-2 font-cormorant">{fieldErrors.username}</p>
+                            <p className="text-secondary text-sm mt-1 ml-2 font-cormorant font-semibold">{fieldErrors.username}</p>
                         )}
                     </div>
 
                     {error && (
-                        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg w-[90%] max-w-md">
-                            <p className="font-cormorant text-base">{error}</p>
+                        <div className="bg-primary/20 border-l-4 border-secondary text-secondary px-4 py-3 rounded-lg w-[90%] max-w-md">
+                            <p className="font-cormorant text-base font-semibold">{error}</p>
                         </div>
                     )}
                     

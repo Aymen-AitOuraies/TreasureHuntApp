@@ -138,8 +138,8 @@ export default function Header({ showTeamIcon = false }) {
 
   return (
     <>
-      <header className="bg-secondary flex justify-between items-center px-6 py-4 shadow-lg">
-        <h1 className="text-background text-2xl font-cormorant font-bold">Treasure Hunt</h1>
+      <header className="bg-secondary flex justify-between items-center px-4 py-2 shadow-lg">
+        <h1 className="text-background text-xl font-cormorant font-bold">Treasure Hunt</h1>
         
         <div className="flex items-center gap-4">
           {/* Profile Picture with Dropdown */}
@@ -151,7 +151,7 @@ export default function Header({ showTeamIcon = false }) {
               <img 
                 src="/assets/GlobalAssets/PirateProfile.jpg" 
                 alt="Pirate Profile" 
-                className="w-12 h-12 rounded-full border-2 border-background object-cover cursor-pointer hover:border-primary transition-colors"
+                className="w-10 h-10 rounded-full border-2 border-background object-cover cursor-pointer hover:border-primary transition-colors"
               />
             </button>
 

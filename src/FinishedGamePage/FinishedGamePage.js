@@ -6,7 +6,11 @@ import { getLeaderboardFromLocalStorage } from '../services/leaderboardService';
 import leaderboardWsService from '../services/leaderboardWebSocketService';
 
 export default function FinishedGamePage({ onNavigate }) {
-  const [showCongratulations, setShowCongratulations] = useState(true);
+  // Check localStorage to see if animation was already shown
+  const [showCongratulations, setShowCongratulations] = useState(() => {
+    const animationShown = sessionStorage.getItem('congratulationsShown');
+    return animationShown !== 'true';
+  });
   const [winningTeamName, setWinningTeamName] = useState('');
   const [isWinner, setIsWinner] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -74,6 +78,8 @@ export default function FinishedGamePage({ onNavigate }) {
   const handleCongratulationsComplete = () => {
     console.log('✅ Congratulations animation complete, showing final leaderboard');
     setShowCongratulations(false);
+    // Mark animation as shown in sessionStorage (persists during browser session)
+    sessionStorage.setItem('congratulationsShown', 'true');
   };
 
   // --------- Show congratulations animation if we have the winner info --------- //

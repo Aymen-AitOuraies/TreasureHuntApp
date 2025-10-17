@@ -26,7 +26,7 @@ export default function Layout({ children, onNavigate, currentPage, showTeamIcon
           <Header showTeamIcon={showTeamIcon} />
         </div>
         
-        <div className="pt-20">
+        <div className="pt-16">
           <PlayerInfo />
           <main className="px-4">
             {children}
