@@ -50,7 +50,7 @@ export default function LoginPage({ onLoginSuccess }) {
                 backgroundSize: '100% 100%',
             }}
         >
-            <div className="flex items-center justify-center min-h-full flex-col px-6 pt-[40vh] pb-20">
+            <div className="flex items-center justify-center min-h-full flex-col px-6 pt-[48vh] pb-20">
                 <form onSubmit={handleSubmit} className="flex flex-col items-center w-full space-y-4">
                     <div className="w-[90%] max-w-md">
                         <input 
