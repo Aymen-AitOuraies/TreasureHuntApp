@@ -44,13 +44,13 @@ export default function LoginPage({ onLoginSuccess }) {
 
     return (
         <div 
-            className="h-screen w-full bg-center font-cormorant bg-no-repeat block md:hidden relative"
+            className="h-screen w-full bg-center font-cormorant bg-no-repeat block md:hidden relative overflow-y-auto"
             style={{
                 backgroundImage: "url('/assets/AuthAssets/LoginBackground.png')",
                 backgroundSize: '100% 100%',
             }}
         >
-            <div className="flex items-center justify-center h-full flex-col px-6 pt-[40vh] pb-32">
+            <div className="flex items-center justify-center min-h-full flex-col px-6 pt-[35vh] pb-28">
                 <div className="text-center w-full mb-8">
                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-secondary leading-tight">
                         Welcome To Treasure Hunt
